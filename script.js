@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     botonesContacto.forEach(boton => {
         boton.addEventListener('click', (e) => {
             const planSeleccionado = e.target.getAttribute('data-plan');
-            const telefono = "4525269616";
+            const telefono = "524525269616";
             const mensaje = encodeURIComponent(`Hola, estuve revisando el portafolio digital de Lucka Art Design y me encuentro interesado en recibir más información sobre el esquema: ${planSeleccionado}.`);
             window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
         });
