@@ -1,43 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* ---------- Contacto vía WhatsApp ---------- */
-    const botonesContacto = document.querySelectorAll('.btnContacto');
-    botonesContacto.forEach(boton => {
-        boton.addEventListener('click', (e) => {
-            const planSeleccionado = e.target.getAttribute('data-plan');
-            const telefono = "524525269616";
-            const mensaje = encodeURIComponent(`Hola, estuve revisando el portafolio digital de Lucka Art Design y me encuentro interesado en recibir más información sobre el esquema: ${planSeleccionado}.`);
-            window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
-        });
-    });
-
-    /* ---------- Navbar: estado al hacer scroll ---------- */
+    /* Nav scroll state */
     const nav = document.getElementById('siteNav');
-    const onScrollNav = () => {
-        if (window.scrollY > 24) {
-            nav.classList.add('scrolled');
-        } else {
-            nav.classList.remove('scrolled');
-        }
-    };
+    const onScrollNav = () => nav.classList.toggle('scrolled', window.scrollY > 24);
     window.addEventListener('scroll', onScrollNav, { passive: true });
     onScrollNav();
 
-    /* ---------- Comparador Antes / Después ---------- */
+    /* Comparador Antes / Después */
     function setStageState(stage, target) {
-        const tabs = stage.querySelectorAll('.compare-tab');
-        const imgs = stage.querySelectorAll('.compare-img');
-        const toggle = stage.querySelector('.compare-toggle');
-
-        tabs.forEach(tab => {
+        stage.querySelectorAll('.compare-tab').forEach(tab => {
             const active = tab.dataset.target === target;
             tab.classList.toggle('is-active', active);
-            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            tab.setAttribute('aria-selected', String(active));
         });
-        imgs.forEach(img => {
+        stage.querySelectorAll('.compare-img').forEach(img => {
             img.classList.toggle('is-active', img.dataset.state === target);
         });
-        toggle.classList.toggle('is-after', target === 'despues');
+        stage.querySelector('.compare-toggle').classList.toggle('is-after', target === 'despues');
     }
 
     document.querySelectorAll('.compare-stage').forEach(stage => {
@@ -46,57 +25,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    /* Cada vez que el carrusel cambia de caso, reinicia su comparador en "Antes" */
     const carouselEl = document.getElementById('carouselPortafolio');
     if (carouselEl) {
-        carouselEl.addEventListener('slide.bs.carousel', (event) => {
-            const nextStage = event.relatedTarget ? event.relatedTarget.querySelector('.compare-stage') : null;
+        carouselEl.addEventListener('slide.bs.carousel', e => {
+            const nextStage = e.relatedTarget?.querySelector('.compare-stage');
             if (nextStage) setStageState(nextStage, 'antes');
         });
     }
 
-    /* ---------- Revelado progresivo al hacer scroll ---------- */
-    const elementosReveal = document.querySelectorAll('.reveal');
-
-    const opcionesConfig = {
-        root: null,
-        threshold: 0.12,
-        rootMargin: "0px 0px -20px 0px"
-    };
-
-    const observer = new IntersectionObserver((entries, observer) => {
+    /* Scroll reveal */
+    const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('active');
-                observer.unobserve(entry.target);
+                obs.unobserve(entry.target);
             }
         });
-    }, opcionesConfig);
+    }, { threshold: 0.10, rootMargin: '0px 0px -20px 0px' });
 
-    elementosReveal.forEach(elemento => {
-        observer.observe(elemento);
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    /* Formulario → WhatsApp */
+    document.getElementById('contactForm')?.addEventListener('submit', e => {
+        e.preventDefault();
+        const name    = document.getElementById('fName').value.trim();
+        const biz     = document.getElementById('fBusiness').value.trim();
+        const service = document.getElementById('fService').value;
+        const msg     = document.getElementById('fMessage').value.trim();
+        if (!name) { document.getElementById('fName').focus(); return; }
+        const text = `Hola Lucka! Soy ${name}${biz ? ' de ' + biz : ''}. Me interesa: ${service || 'orientación'}. ${msg}`.trim();
+        window.open(`https://wa.me/524525269616?text=${encodeURIComponent(text)}`, '_blank');
     });
 
-    /* ---------- Paralaje ambiental sutil (solo con mouse e intención de movimiento) ---------- */
+    /* Botones de plan → WhatsApp */
+    document.querySelectorAll('.btnContacto').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const plan = btn.getAttribute('data-plan');
+            const text = `Hola, vi el portafolio de Lucka Art Design y me interesa el plan: ${plan}.`;
+            window.open(`https://wa.me/524525269616?text=${encodeURIComponent(text)}`, '_blank');
+        });
+    });
+
+    /* Paralaje ambiental */
     const sphere1 = document.querySelector('.bg-blur-sphere-1');
     const sphere2 = document.querySelector('.bg-blur-sphere-2');
     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const hasHover = window.matchMedia('(hover: hover)').matches;
 
     if (sphere1 && sphere2 && !prefersReduced && hasHover) {
-        let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
-
-        document.addEventListener('mousemove', (e) => {
-            targetX = (e.clientX / window.innerWidth) - 0.5;
-            targetY = (e.clientY / window.innerHeight) - 0.5;
+        let tx = 0, ty = 0, cx = 0, cy = 0;
+        document.addEventListener('mousemove', e => {
+            tx = (e.clientX / window.innerWidth) - 0.5;
+            ty = (e.clientY / window.innerHeight) - 0.5;
         });
-
-        (function animateParallax() {
-            currentX += (targetX - currentX) * 0.06;
-            currentY += (targetY - currentY) * 0.06;
-            sphere1.style.transform = `translate(${currentX * 24}px, ${currentY * 24}px)`;
-            sphere2.style.transform = `translate(${currentX * -28}px, ${currentY * -18}px)`;
-            requestAnimationFrame(animateParallax);
+        (function anim() {
+            cx += (tx - cx) * 0.06;
+            cy += (ty - cy) * 0.06;
+            sphere1.style.transform = `translate(${cx * 24}px, ${cy * 24}px)`;
+            sphere2.style.transform = `translate(${cx * -28}px, ${cy * -18}px)`;
+            requestAnimationFrame(anim);
         })();
     }
 });
