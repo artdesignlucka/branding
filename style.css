@@ -273,9 +273,15 @@ a:focus-visible, button:focus-visible {
 }
 .logo-card:hover .logo-card-img { transform: scale(1.04); }
 .logo-card-label {
+    margin-top: 1px; font-size: 0.58rem; font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.logo-card-concept {
     margin-top: 12px; font-size: 0.78rem; font-weight: 600;
     color: var(--text-secondary);
 }
+
 
 /* Process steps */
 .process-number {
